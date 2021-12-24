@@ -5,7 +5,7 @@ from collections import namedtuple
 from ctypes import POINTER
 from dataclasses import dataclass
 from typing import Tuple
-import geometry
+# import geometry
 
 @dataclass
 class DoneRewardInfo:
