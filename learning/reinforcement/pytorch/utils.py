@@ -74,7 +74,7 @@ def evaluate_policy(env, policy, eval_episodes=10, max_timesteps=500):
     return avg_reward
 
 
-mbrl_config_dict = {
+planet_config_dict = {
     'seed': 0,
     'device': 'cuda:0',
     'log_frequency_agent': 1000,
