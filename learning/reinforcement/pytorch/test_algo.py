@@ -16,10 +16,29 @@ from learning.utils.wrappers import NormalizeWrapper, ImgWrapper, \
     DtRewardWrapper, ActionWrapper, ResizeWrapper
 
 import wandb
+import torch
     
 import errno
 import os
 from datetime import datetime
+
+import hydra
+import omegaconf
+from learning.reinforcement.pytorch.utils import planet_config_dict
+
+cfg = omegaconf.OmegaConf.create(planet_config_dict)
+
+# ADD THE MBRL LIB TO PATH SO YOU CAN IMPORT IT 
+import sys
+sys.path.append('/home/kuwajerw/repos/duckietown-mbrl-lib')
+
+
+import mbrl.algorithms.planet as planet
+import mbrl.util.env
+import mbrl.constants
+from mbrl.env.termination_fns import no_termination
+from mbrl.models import ModelEnv, ModelTrainer
+from mbrl.planning import RandomAgent, create_trajectory_optim_agent_for_model
 
 # folder in which to save logs
 # will make timestamped folder in here
@@ -86,6 +105,24 @@ def _enjoy():
     state_dim = env.observation_space.shape
     action_dim = env.action_space.shape[0]
     max_action = float(env.action_space.high[0])
+    
+    # PLANET STUFF ##############################
+        
+    obs_shape = env.observation_space.shape
+    act_shape = env.action_space.shape
+    # Create PlaNet model
+    rng = torch.Generator(device=cfg.device)
+    rng.manual_seed(cfg.seed)
+    cfg.dynamics_model.action_size = env.action_space.shape[0]
+
+    planet = hydra.utils.instantiate(cfg.dynamics_model)
+    assert isinstance(planet, mbrl.models.PlaNetModel)
+    planet.load('learning/reinforcement/pytorch/models/planet.pth')
+    model_env = ModelEnv(env, planet, no_termination, generator=rng)
+    trainer = ModelTrainer(planet, optim_lr=1e-3, optim_eps=1e-4)
+    
+    agent = create_trajectory_optim_agent_for_model(model_env, cfg.algorithm.agent)
+    # PLANET STUFF ##############################
 
     # Initialize policy
     # policy = DDPG(state_dim, action_dim, max_action, net_type="cnn")
@@ -96,12 +133,25 @@ def _enjoy():
     reward_list = []
     action_list = []
 
+    # PLANET STUFF ##############################
+    agent.reset()
+    planet.reset_posterior()
+    action = None
+    # PLANET STUFF ##############################
+
     # while True:
     # while not done:
     for step in range(100):
+        
+        # PLANET STUFF ##############################
+        planet.update_posterior(obs, action=action, rng=rng)
+        action_noise = 0
+        action = agent.act(obs) + action_noise
+        action = np.clip(action, -1.0, 1.0)  # to account for the noise
+        # PLANET STUFF ##############################
 
         # action = policy.predict(np.array(obs))
-        action = env.action_space.sample()
+        # action = env.action_space.sample()
         # Perform action
         obs, reward, done, _ = env.step(action)
 
