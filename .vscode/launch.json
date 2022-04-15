@@ -5,11 +5,15 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Current File",
+            "name": "Manual Control",
             "type": "python",
             "request": "launch",
             "python": "/home/kuwajerw/anaconda3/envs/dgym/bin/python",
-            "program": "${file}",
+            "program": "manual_control.py",
+            "args": [
+                "--env-name",
+                "Duckietown-udem1-v0"
+            ],
             "console": "integratedTerminal",
             "justMyCode": true
         }
