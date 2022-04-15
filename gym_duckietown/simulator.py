@@ -1,11 +1,13 @@
 # coding=utf-8
 from __future__ import division
 
-from collections import namedtuple
+from collections import namedtuple, deque
 from ctypes import POINTER
 from dataclasses import dataclass
 from typing import Tuple
 # import geometry
+
+# import wandb
 
 @dataclass
 class DoneRewardInfo:
@@ -158,6 +160,8 @@ class Simulator(gym.Env):
             seed=None,
             distortion=False,
             randomize_maps_on_reset=False,
+            set_start_pos=None,
+            set_start_angle=None
     ):
         """
 
@@ -305,6 +309,10 @@ class Simulator(gym.Env):
             self.map_names = os.listdir('maps')
             self.map_names = [mapfile.replace('.yaml', '') for mapfile in self.map_names]
 
+        
+        self.set_start_pos = set_start_pos
+        self.set_start_angle = set_start_angle
+        
         # Initialize the state
         self.reset()
 
@@ -512,6 +520,19 @@ class Simulator(gym.Env):
 
         self.cur_pos = propose_pos
         self.cur_angle = propose_angle
+
+        if self.set_start_pos is not None:
+            self.cur_pos = self.set_start_pos
+        if self.set_start_angle is not None:
+            # self.cur_angle = self.set_start_angle
+            # v Dunno why I need to do this but ugh v
+            self.cur_angle = np.array([-1.564463624086557])
+            xyz = 5
+
+        self.cur_poses = deque(maxlen=10)
+        self.cur_angles = deque(maxlen=10)
+        self.cur_poses.append(self.cur_pos)
+        self.cur_angles.append(self.cur_angle)
 
         logger.info('Starting at %s %s' % (self.cur_pos, self.cur_angle))
 
@@ -1220,6 +1241,10 @@ class Simulator(gym.Env):
                                                    self.wheel_dist,
                                                    wheelVels=self.wheelVels,
                                                    deltaTime=delta_time)
+
+        self.cur_poses.append(self.cur_pos)
+        self.cur_angles.append(self.cur_angle)
+
         self.step_count += 1
         self.timestamp += delta_time
 
@@ -1328,6 +1353,11 @@ class Simulator(gym.Env):
                     -10 * np.abs(lp.dist) +
                     +40 * col_penalty
             )
+            # Ali's reward:
+            delta_pos = self.cur_pos - self.cur_poses[0]
+            distance_travelled = np.linalg.norm(delta_pos)
+            # wandb.log({"dist_traveled": distance_travelled})
+            reward += distance_travelled*5
         return reward
 
     def step(self, action: np.ndarray):
