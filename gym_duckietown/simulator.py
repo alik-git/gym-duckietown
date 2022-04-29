@@ -526,7 +526,7 @@ class Simulator(gym.Env):
         if self.set_start_angle is not None:
             # self.cur_angle = self.set_start_angle
             # v Dunno why I need to do this but ugh v
-            self.cur_angle = np.array([-1.564463624086557])
+            self.cur_angle = np.array([-1.56446362])
             xyz = 5
 
         self.cur_poses = deque(maxlen=10)
@@ -1336,6 +1336,7 @@ class Simulator(gym.Env):
         gz = grid_height * tile_size - cp[1]
         return [gx, gy, gz], angle
 
+    print("hella 50 reward")
     def compute_reward(self, pos, angle, speed):
         # Compute the collision avoidance penalty
         col_penalty = self._proximity_penalty2(pos, angle)
@@ -1349,7 +1350,7 @@ class Simulator(gym.Env):
 
             # Compute the reward
             reward = (
-                    +1.0 * speed * lp.dot_dir +
+                    # +1.0 * speed * lp.dot_dir +
                     -10 * np.abs(lp.dist) +
                     +40 * col_penalty
             )
@@ -1357,7 +1358,7 @@ class Simulator(gym.Env):
             delta_pos = self.cur_pos - self.cur_poses[0]
             distance_travelled = np.linalg.norm(delta_pos)
             # wandb.log({"dist_traveled": distance_travelled})
-            reward += distance_travelled*5
+            reward += distance_travelled*50
         return reward
 
     def step(self, action: np.ndarray):

@@ -100,6 +100,8 @@ def update(dt):
 
     obs, reward, done, info = env.step(action)
     print('step_count = %s, reward=%.3f' % (env.unwrapped.step_count, reward))
+    print(f"curr_pos is {env.cur_pos} and cur_angle is {env.cur_angle}")
+    
 
     if key_handler[key.RETURN]:
         from PIL import Image
