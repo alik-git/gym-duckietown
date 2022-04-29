@@ -1,3 +1,9 @@
+###################
+##### FOR GLEN ####
+###################
+# This is just a script I used to help figure out how to record videos in
+# Duckietown, and also how to use a trained agent to pick actions in Duckietown.
+###################
 import ast
 import argparse
 import logging

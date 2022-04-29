@@ -122,12 +122,3 @@ pyglet.clock.schedule_interval(update, 1.0 / env.unwrapped.frame_rate)
 pyglet.app.run()
 
 env.close()
-
-'''
-env.cur_pos
-array([3.68356218, 0.        , 1.50287902])
-env.cur_angle
--1.564463624086557
-reward
--0.01937822796149291
-'''
