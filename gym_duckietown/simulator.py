@@ -1336,7 +1336,6 @@ class Simulator(gym.Env):
         gz = grid_height * tile_size - cp[1]
         return [gx, gy, gz], angle
 
-    print("hella 50 reward")
     def compute_reward(self, pos, angle, speed):
         # Compute the collision avoidance penalty
         col_penalty = self._proximity_penalty2(pos, angle)
